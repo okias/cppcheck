@@ -4070,6 +4070,24 @@ class MisraChecker:
                 elif not is_errno_setting_function(last_function_call):
                     self.reportError(token, 22, 10)
 
+    def misra_23_6(self, cfg):
+        """Part of the 23.6"""
+        def get_category(essential_type):
+            if essential_type:
+                if essential_type == 'bool':
+                    return essential_type
+            return None
+        for tok in cfg.tokenlist:
+            if tok.isAssignmentOp:
+                lhs = getEssentialType(tok.astOperand1)
+                rhs = getEssentialType(tok.astOperand2)
+                if lhs is None or rhs is None:
+                    continue
+                lhs_is_bool = lhs == 'bool'
+                rhs_is_bool = rhs == 'bool'
+                if lhs_is_bool:
+                    if not rhs_is_bool:
+                        self.reportError(tok, 23, 6)
 
     def get_verify_expected(self):
         """Return the list of expected violations in the verify test"""
@@ -4678,6 +4696,7 @@ class MisraChecker:
             self.executeCheck(2208, self.misra_22_8, cfg)
             self.executeCheck(2209, self.misra_22_9, cfg)
             self.executeCheck(2210, self.misra_22_10, cfg)
+            self.executeCheck(2306, self.misra_23_6, cfg)
 
     def read_ctu_info_line(self, line):
         if not line.startswith('{'):
